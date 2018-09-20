@@ -158,11 +158,12 @@ open class ExpandableLabel: UILabel {
     
     open override var attributedText: NSAttributedString? {
         set(attributedText) {
-            if let attributedText = attributedText?.copyWithAddedFontAttribute(font).copyWithParagraphAttribute(font), attributedText.length > 0 {
-                self.collapsedText = getCollapsedText(for: attributedText, link: (linkHighlighted) ? collapsedAttributedLink.copyWithHighlightedColor() : self.collapsedAttributedLink)
-                self.expandedText = getExpandedText(for: attributedText, link: (linkHighlighted) ? expandedAttributedLink?.copyWithHighlightedColor() : self.expandedAttributedLink)
-                super.attributedText = (self.collapsed) ? self.collapsedText : self.expandedText
+            if let unprocessedAttributedText = attributedText?.copyWithAddedFontAttribute(font).copyWithParagraphAttribute(font), unprocessedAttributedText.length > 0 {
+                self.unprocessedAttributedText = unprocessedAttributedText
+                self.configureAttributedTextsForAllStates()
+                self.setAttributedTextForCurrentState()
             } else {
+                self.unprocessedAttributedText = nil
                 self.expandedText = nil
                 self.collapsedText = nil
                 super.attributedText = nil
@@ -172,9 +173,22 @@ open class ExpandableLabel: UILabel {
             return super.attributedText
         }
     }
+
+    private var unprocessedAttributedText: NSAttributedString?
+
+    private func configureAttributedTextsForAllStates() {
+        self.collapsedText = getCollapsedText(for: self.unprocessedAttributedText, link: (linkHighlighted) ? collapsedAttributedLink.copyWithHighlightedColor() : self.collapsedAttributedLink)
+        self.expandedText = getExpandedText(for: self.unprocessedAttributedText, link: (linkHighlighted) ? expandedAttributedLink?.copyWithHighlightedColor() : self.expandedAttributedLink)
+    }
+
+    private func setAttributedTextForCurrentState() {
+        super.attributedText = (self.collapsed) ? self.collapsedText : self.expandedText
+    }
     
     open override func layoutSubviews() {
         super.layoutSubviews()
+        self.configureAttributedTextsForAllStates()
+        self.setAttributedTextForCurrentState()
     }
     
     fileprivate func textReplaceWordWithLink(_ lineIndex: LineIndexTuple, text: NSAttributedString, linkName: NSAttributedString) -> NSAttributedString {
