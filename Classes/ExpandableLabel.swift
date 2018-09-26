@@ -266,7 +266,9 @@ open class ExpandableLabel: UILabel {
                 if let lineIndex = lineIndex {
                     modifiedLastLineText = textReplaceWordWithLink(lineIndex, text: text, linkName: link)
                 }
-            } else {
+            }
+            if self.textReplacementType == .character
+                || (self.textReplacementType == .word && lineIndex!.index < (collapsedNumberOfLines - 1)) { // if the text is sparse (contains empty lines)
                 lineIndex = (lastLineRef, collapsedNumberOfLines - 1)
                 if let lineIndex = lineIndex {
                     modifiedLastLineText = textReplaceWithLink(lineIndex, text: text, linkName: link)
